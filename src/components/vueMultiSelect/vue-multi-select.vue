@@ -62,13 +62,13 @@
         :key="index">
         <li v-for="(option, indexOptions) in tab[list]"
           :key="indexOptions"
-          :class="[option[labelDisabled] ? 'disabled' : '', 'selectItem']"
+          :class="[option[labelName].includes('Parent-')  ? 'disabled' : '', 'selectItem']"
           v-show="option.visible"
           @click="selectOption(option)"
           :style="cssSelected(option)">
           <slot name="option" v-bind:option="option">
             <span class="right margin-right-10" v-if="option[labelSelected]">✓</span>
-            <span class="margin-left-20">{{option[labelName]}}</span>
+            <span class="margin-left-20">{{option[labelName].split('Parent-').pop()}}</span>
           </slot>
         </li>
       </ul>
