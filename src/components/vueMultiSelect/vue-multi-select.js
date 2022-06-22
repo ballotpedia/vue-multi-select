@@ -197,21 +197,108 @@ export default {
       this.manualClick = false;
     },
     /* eslint no-param-reassign: ["error", { "props": false }] */
-    selectOption(option) {
+    selectOption(option, list) {
       if (option[this.labelDisabled]) {
+        this.pushOption(option)
         return;
       }
       if (!option[this.labelSelected]) {
-        this.previousSelected.push(this.cloneData(this.valueSelected));
-        if (!this.multi) {
-          this.deselctAll();
-          this.valueSelected = [];
-          this.externalClick({ path: [] });
+
+
+
+        // Parent logic is always here since we always keep it as 'false' for selected.
+
+
+        // Determine which are children categories by looking at the items between the two "Parent-" denoted categories
+        let indexOfParent = list.findIndex((object, i) => {
+          return object.name === option.name;
+        });
+
+
+        let indexOfNextParent = list.findIndex((object, i) => {
+          return i > indexOfParent && object.name.includes('Parent-');
+        });
+
+        let childOptions = list.slice(indexOfParent + 1, indexOfNextParent);
+        
+
+
+        // IF PARENT 
+        
+        if(option.name.includes('Parent-')) {
+
+          // First determine if all children are already selected
+          console.log('val selected');
+          console.log(this.valueSelected)
+          let containsAllChildren = true 
+
+          childOptions.forEach((child) => {
+            if (!this.valueSelected.includes(child.name)) {
+              containsAllChildren = false;
+            }
+          }) 
+
+
+          console.log(containsAllChildren);
+
+          // If all children are already selected, then de-select all. 
+          if(containsAllChildren) {
+            childOptions.forEach((option) => {
+              this.previousSelected.push(this.cloneData(this.valueSelected));
+              this.popOption(option);
+              this.$emit('input', this.valueSelected.slice(0));
+              this.$emit(this.eventName, this.valueSelected.slice(0));
+              option[this.labelSelected] = false;
+            })
+
+          } else {
+
+            // If not all already selected, do a loop and add all child categories as selected.
+            childOptions.forEach((option) => {
+       
+              // Only add if child doesn't already exist in selected array
+              if (!this.valueSelected.includes(option.name)) {
+
+                this.previousSelected.push(this.cloneData(this.valueSelected));
+
+                this.pushOption(option);
+                this.$emit('input', this.valueSelected.slice(0));
+                this.$emit(this.eventName, this.valueSelected.slice(0));
+                option[this.labelSelected] = true;
+              }
+
+            })
+
+
+          }
+
+          // End custom logic. 
+
+
+
+
+      
+        } else {
+
+            this.previousSelected.push(this.cloneData(this.valueSelected));
+          
+            if (!this.multi) {
+              this.deselctAll();
+              this.valueSelected = [];
+              this.externalClick({ path: [] });
+            }
+    
+    
+            this.pushOption(option);
+            this.$emit('input', this.valueSelected.slice(0));
+            this.$emit(this.eventName, this.valueSelected.slice(0));
+
         }
-        this.pushOption(option);
-        this.$emit('input', this.valueSelected.slice(0));
-        this.$emit(this.eventName, this.valueSelected.slice(0));
+    
+        
+
       } else {
+ 
         if (!this.multi && this.disabledUnSelect) {
           return;
         }
@@ -219,8 +306,16 @@ export default {
         this.popOption(option);
         this.$emit('input', this.valueSelected.slice(0));
         this.$emit(this.eventName, this.valueSelected.slice(0));
+
+
       }
-      option[this.labelSelected] = !option[this.labelSelected];
+
+      // Keep parent as always false checked.
+
+      if (!option.name.includes('Parent-')) {
+        option[this.labelSelected] = !option[this.labelSelected];
+      }
+      
       this.filter();
     },
     pushOption(option) {
