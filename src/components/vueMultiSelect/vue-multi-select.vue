@@ -64,7 +64,7 @@
           :key="indexOptions"
           :class="[option[labelName].includes('Parent-')  ? 'disabled' : '', 'selectItem']"
           v-show="option.visible"
-          @click="selectOption(option)"
+          @click="selectOption(option, tab[list])"
           :style="cssSelected(option)">
           <slot name="option" v-bind:option="option">
             <span class="right margin-right-10" v-if="option[labelSelected]">✓</span>
